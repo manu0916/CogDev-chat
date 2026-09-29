@@ -1,11 +1,12 @@
 {
-  "name": "cogdev-orcamentos",
+  "name": "cogdev-chat",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:full": "npm run build && wrangler dev",
+    "dev:api": "wrangler dev --config wrangler.worker.jsonc --env development",
+    "dev:pages": "npm run build && wrangler pages dev dist --service QUOTE_API=cogdev-chat-api-development",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
@@ -14,9 +15,11 @@
     "test:e2e": "playwright test",
     "test:all": "npm run test && npm run build && npm run test:e2e",
     "cf:types": "wrangler types",
-    "db:migrate:local": "wrangler d1 migrations apply cogdev-quotes --local",
-    "db:migrate:remote": "wrangler d1 migrations apply cogdev-quotes --remote",
-    "deploy": "npm run build && wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.worker.jsonc --env development",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote --config wrangler.worker.jsonc --env production",
+    "deploy:api": "wrangler deploy --config wrangler.worker.jsonc --env production",
+    "deploy:pages": "npm run build && wrangler pages deploy dist --project-name cogdev-chat --branch main",
+    "deploy": "npm run deploy:api && npm run deploy:pages",
     "audit:prod": "npm audit --omit=dev"
   },
   "dependencies": {

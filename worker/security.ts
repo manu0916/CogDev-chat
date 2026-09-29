@@ -149,12 +149,3 @@ export const getClientIpKey = async (request: Request, env: Env) => {
   if (!salt) throw new Error('RATE_LIMIT_SALT is required in production');
   return sha256(`${salt}|${ip}`);
 };
-
-export const safeAssetResponse = async (request: Request, env: Env) => {
-  const asset = await env.ASSETS.fetch(request);
-  const headers = responseHeaders(request, env, asset.headers);
-  if (new URL(request.url).pathname === '/' || headers.get('Content-Type')?.includes('text/html')) {
-    headers.set('Cache-Control', 'no-cache');
-  }
-  return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
-};

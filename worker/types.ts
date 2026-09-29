@@ -1,6 +1,5 @@
 export interface Env {
   DB: D1Database;
-  ASSETS: Fetcher;
   CONVERSATIONS: DurableObjectNamespace;
   ADMIN_INBOX: DurableObjectNamespace;
   ENVIRONMENT: string;

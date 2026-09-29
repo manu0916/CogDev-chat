@@ -30,7 +30,6 @@ import {
   RequestBodyError,
   requestOriginIsAllowed,
   responseHeaders,
-  safeAssetResponse,
   sessionCookies,
   clearSessionCookies,
   sha256,
@@ -1196,11 +1195,10 @@ const worker: ExportedHandler<Env> = {
     try {
       const url = new URL(request.url);
       if (url.pathname.startsWith('/api/')) return await handleApi(request, env);
-      if (url.pathname === '/admin' || url.pathname.startsWith('/admin/')) {
-        const admin = await authenticateAdmin(request, env);
-        if (!admin) return new Response('Acesso administrativo não autorizado.', { status: 401, headers: responseHeaders(request, env, { 'Content-Type': 'text/plain; charset=utf-8' }) });
-      }
-      return await safeAssetResponse(request, env);
+      return new Response('Recurso não encontrado.', {
+        status: 404,
+        headers: responseHeaders(request, env, { 'Content-Type': 'text/plain; charset=utf-8' }),
+      });
     } catch (error) {
       if (error instanceof RequestBodyError) {
         const status = error.code === 'PAYLOAD_TOO_LARGE' ? 413 : error.code === 'UNSUPPORTED_MEDIA_TYPE' ? 415 : 400;

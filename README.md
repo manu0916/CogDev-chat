@@ -37,14 +37,19 @@ Requisitos: Node.js 22+ e uma conta Cloudflare para publicar.
 
 ```bash
 npm install
-npm run build
 npm run db:migrate:local
-npx wrangler dev
+npm run dev:api
 ```
 
-A aplicação fica em `http://127.0.0.1:8787` e o painel em `http://127.0.0.1:8787/admin`. Somente em `ENVIRONMENT=development`, e apenas em `localhost`/`127.0.0.1`, o Worker provisiona um administrador local com papel `owner`.
+Em outro terminal, execute `npm run dev`. O frontend Vite fica em `http://127.0.0.1:5173` e encaminha `/api` para a API local na porta `8787`. Somente em `ENVIRONMENT=development`, e apenas em `localhost`/`127.0.0.1`, a API provisiona um administrador local com papel `owner`.
 
-Para desenvolver o frontend com recarga automática, mantenha `npx wrangler dev` aberto e, em outro terminal, execute `npm run dev`.
+Para testar a arquitetura de produção (Pages + Function + Service Binding), mantenha `npm run dev:api` aberto e execute, em outro terminal:
+
+```bash
+npm run dev:pages
+```
+
+O comando informa a URL local disponível. A Pages Function envia `/api/*` diretamente para o Worker privado, sem expor uma URL pública da API.
 
 ## Testes
 
@@ -60,47 +65,55 @@ Os testes cobrem validação e mass assignment, regras de acesso, host C6 malici
 
 ## Publicação na Cloudflare
 
-1. Crie o banco e copie o `database_id` para `wrangler.jsonc`:
+O projeto público se chama **`cogdev-chat`** e será publicado em `https://cogdev-chat.pages.dev`. A API privada se chama **`cogdev-chat-api`**. O banco D1 já criado pode continuar com o nome `cogdev-quotes`; o ID dele fica somente em `wrangler.worker.jsonc`.
+
+1. Se ainda não houver banco, crie-o e copie o `database_id` para `wrangler.worker.jsonc`:
 
    ```bash
    npx wrangler d1 create cogdev-quotes
    ```
 
-2. Configure em `wrangler.jsonc`:
+2. Configure em `wrangler.worker.jsonc`, na seção `env.production.vars`:
    - `ENVIRONMENT`: `production`;
-   - `ALLOWED_ORIGINS`: domínio público exato, com `https://`;
+   - `ALLOWED_ORIGINS`: `https://cogdev-chat.pages.dev`;
    - `TURNSTILE_SITE_KEY`;
    - `WHATSAPP_NUMBER`, se desejar o atalho;
    - `ADMIN_BOOTSTRAP_EMAILS`: e-mail inicial do proprietário;
    - `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD` e, opcionalmente, `CF_ACCESS_ALLOWED_DOMAIN`;
    - mantenha `C6_ALLOWED_PAYMENT_HOSTS` como `checkout2.c6pay.com.br`.
 
-3. Grave os segredos. Nunca coloque os valores no repositório ou no `wrangler.jsonc`:
+   O `wrangler.jsonc` raiz é exclusivo do Cloudflare Pages e já declara o Service Binding `QUOTE_API` para `cogdev-chat-api`. Não adicione nele uma segunda configuração D1 com `remote: true`.
+
+3. Grave os segredos. Nunca coloque os valores no repositório ou nos arquivos `wrangler*.jsonc`:
 
    ```bash
-   npx wrangler secret put TURNSTILE_SECRET_KEY
-   npx wrangler secret put RATE_LIMIT_SALT
+   npx wrangler secret put TURNSTILE_SECRET_KEY --config wrangler.worker.jsonc --env production
+   npx wrangler secret put RATE_LIMIT_SALT --config wrangler.worker.jsonc --env production
    ```
 
-4. Aplique as migrations e publique:
+4. Aplique as migrations e publique primeiro a API privada, depois o Pages:
 
    ```bash
    npm run db:migrate:remote
-   npm run deploy
+   npm run deploy:api
+   npm run deploy:pages
    ```
 
-5. No Cloudflare Zero Trust, crie uma aplicação Access protegendo `/admin*` e `/api/admin/*`. Use o Application Audience (`AUD`) dessa aplicação em `CF_ACCESS_AUD`. Depois do primeiro acesso do proprietário, remova o e-mail de `ADMIN_BOOTSTRAP_EMAILS` e publique novamente.
+5. No Cloudflare Zero Trust, configure a aplicação Access usada pelo administrador e informe `CF_ACCESS_TEAM_DOMAIN` e `CF_ACCESS_AUD`. Depois do primeiro acesso do proprietário, remova o e-mail de `ADMIN_BOOTSTRAP_EMAILS` e publique novamente.
 
 `CF_ACCESS_TEAM_DOMAIN` deve ser a origem completa da equipe, por exemplo `https://sua-equipe.cloudflareaccess.com`, sem barra final.
 
+O shell da rota `/admin` pode ser carregado como um arquivo estático, mas todo dado e toda ação administrativa exigem um JWT válido do Cloudflare Access no Worker. Portanto, sem configurar o Access, o painel não libera informações administrativas. Caso sua conta Zero Trust não permita proteger diretamente o subdomínio gratuito `*.pages.dev`, use um domínio próprio gerenciado pela Cloudflare quando for ativar a proteção de borda.
+
 ### Bindings
 
-O `wrangler.jsonc` já declara os bindings usados pelo Worker:
+`wrangler.worker.jsonc` declara os bindings usados pela API privada:
 
 - `DB`: banco D1 `cogdev-quotes`;
-- `ASSETS`: arquivos do build em `dist/`;
 - `CONVERSATIONS`: Durable Object SQLite `ConversationRoom`, um canal por conversa;
 - `ADMIN_INBOX`: Durable Object SQLite `AdminInbox`, usado para atualizações da caixa administrativa.
+
+`wrangler.jsonc` declara o build `dist/` do Cloudflare Pages e o binding `QUOTE_API`, que liga a Pages Function à API sem passar pela internet pública.
 
 As classes dos Durable Objects estão declaradas em `exports`, portanto o Wrangler cria as migrations de classe exigidas pela configuração atual. As migrations relacionais ficam separadas em `migrations/` e são aplicadas pelo comando D1.
 

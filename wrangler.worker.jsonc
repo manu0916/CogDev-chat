@@ -1,0 +1,107 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cogdev-chat-api",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-28",
+  "workers_dev": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cogdev-quotes",
+      "database_id": "17434043-39a2-40c5-a020-c09e93de5642",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "CONVERSATIONS", "class_name": "ConversationRoom" },
+      { "name": "ADMIN_INBOX", "class_name": "AdminInbox" }
+    ]
+  },
+  "exports": {
+    "ConversationRoom": { "type": "durable-object", "storage": "sqlite" },
+    "AdminInbox": { "type": "durable-object", "storage": "sqlite" }
+  },
+  "triggers": { "crons": ["17 3 * * *"] },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ALLOWED_ORIGINS": "https://cogdev-chat.pages.dev",
+    "TURNSTILE_SITE_KEY": "",
+    "WHATSAPP_NUMBER": "",
+    "ENABLE_SAMPLE_PRICING": "false",
+    "RETENTION_DAYS": "180",
+    "CF_ACCESS_TEAM_DOMAIN": "",
+    "CF_ACCESS_AUD": "",
+    "CF_ACCESS_ALLOWED_DOMAIN": "",
+    "ADMIN_BOOTSTRAP_EMAILS": "",
+    "C6_ALLOWED_PAYMENT_HOSTS": "checkout2.c6pay.com.br",
+    "C6_CHECKOUT_ADAPTER_URL": "",
+    "C6_WEBHOOK_AUDIENCE": ""
+  },
+  "env": {
+    "production": {
+      "name": "cogdev-chat-api",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cogdev-quotes",
+          "database_id": "17434043-39a2-40c5-a020-c09e93de5642",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "CONVERSATIONS", "class_name": "ConversationRoom" },
+          { "name": "ADMIN_INBOX", "class_name": "AdminInbox" }
+        ]
+      },
+      "vars": {
+        "ENVIRONMENT": "production",
+        "ALLOWED_ORIGINS": "https://cogdev-chat.pages.dev",
+        "TURNSTILE_SITE_KEY": "",
+        "WHATSAPP_NUMBER": "",
+        "ENABLE_SAMPLE_PRICING": "false",
+        "RETENTION_DAYS": "180",
+        "CF_ACCESS_TEAM_DOMAIN": "",
+        "CF_ACCESS_AUD": "",
+        "CF_ACCESS_ALLOWED_DOMAIN": "",
+        "ADMIN_BOOTSTRAP_EMAILS": "",
+        "C6_ALLOWED_PAYMENT_HOSTS": "checkout2.c6pay.com.br",
+        "C6_CHECKOUT_ADAPTER_URL": "",
+        "C6_WEBHOOK_AUDIENCE": ""
+      }
+    },
+    "development": {
+      "name": "cogdev-chat-api-development",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cogdev-quotes",
+          "database_id": "17434043-39a2-40c5-a020-c09e93de5642",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "CONVERSATIONS", "class_name": "ConversationRoom" },
+          { "name": "ADMIN_INBOX", "class_name": "AdminInbox" }
+        ]
+      },
+      "vars": {
+        "ENVIRONMENT": "development",
+        "ALLOWED_ORIGINS": "http://localhost:5173,http://127.0.0.1:5173,http://localhost:8787,http://127.0.0.1:8787,http://localhost:8788,http://127.0.0.1:8788",
+        "TURNSTILE_SITE_KEY": "",
+        "WHATSAPP_NUMBER": "",
+        "ENABLE_SAMPLE_PRICING": "false",
+        "RETENTION_DAYS": "180",
+        "CF_ACCESS_TEAM_DOMAIN": "",
+        "CF_ACCESS_AUD": "",
+        "CF_ACCESS_ALLOWED_DOMAIN": "",
+        "ADMIN_BOOTSTRAP_EMAILS": "",
+        "C6_ALLOWED_PAYMENT_HOSTS": "checkout2.c6pay.com.br",
+        "C6_CHECKOUT_ADAPTER_URL": "",
+        "C6_WEBHOOK_AUDIENCE": ""
+      }
+    }
+  }
+}

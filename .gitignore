@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+worker-configuration.d.ts

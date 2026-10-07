@@ -93,7 +93,11 @@ export const quotePayloadSchema = z
     visualIdentity: z.enum(['ready', 'partial', 'none', 'not-sure']),
     existingProject: z.enum(['yes', 'no']),
     deadline: z.enum(['urgent', '1-2-months', '3-4-months', '5-plus-months', 'flexible']),
-    budget: z.enum(['under-5k', '5-15k', '15-30k', '30-60k', '60k-plus', 'not-sure']),
+    // Keep legacy values valid for quotes submitted by sessions created before the budget ranges changed.
+    budget: z.enum([
+      'under-1k', '1-2k', '2-3k', 'not-sure',
+      'under-5k', '5-15k', '15-30k', '30-60k', '60k-plus',
+    ]),
     notes: z.string().trim().max(1_500).optional(),
     consent: z.literal(true),
     turnstileToken: z.string().min(1).max(2_048),

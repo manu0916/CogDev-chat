@@ -144,7 +144,7 @@ export const proposalAnnouncement = (proposal: ProposalRow) => {
   return [
     `A Cog Dev enviou a proposta v${proposal.version}.`,
     `Serviço: ${proposal.scope_summary}`,
-    `Valor total: ${money(proposal.total_amount)}. Sinal: ${money(proposal.deposit_amount)}.`,
+    `Valor total: ${money(proposal.total_amount)}. Valor inicial: ${money(proposal.deposit_amount)}.`,
     `Prazo: ${proposal.estimated_deadline}. Condições: ${proposal.payment_terms}.`,
     `Válida até ${new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(new Date(proposal.valid_until))}.`,
     'Use “Revisar proposta” antes de aceitar e pagar.',

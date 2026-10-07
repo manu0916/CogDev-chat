@@ -52,7 +52,7 @@ export function ProposalReview({ proposal, onRefresh }: Props) {
         <div>
           <span className="eyebrow">Proposta v{proposal.version}</span>
           <strong>{proposal.scopeSummary}</strong>
-          <p>{money(proposal.totalAmount)} · sinal de {money(proposal.depositAmount)}</p>
+          <p>{money(proposal.totalAmount)} · valor inicial de {money(proposal.depositAmount)}</p>
         </div>
         <div className="proposal-card-action">
           <span className={`proposal-status ${proposal.status}`}>{statusText[proposal.status]}</span>
@@ -71,7 +71,7 @@ export function ProposalReview({ proposal, onRefresh }: Props) {
               <section><h3>Escopo do serviço</h3><p>{proposal.scopeSummary}</p></section>
               <dl className="proposal-values">
                 <div><dt>Valor total</dt><dd>{money(proposal.totalAmount)}</dd></div>
-                <div><dt>Sinal para início</dt><dd>{money(proposal.depositAmount)}</dd></div>
+                <div><dt>Valor inicial</dt><dd>{money(proposal.depositAmount)}</dd></div>
               </dl>
               <dl className="proposal-terms">
                 <div><dt>Prazo estimado</dt><dd>{proposal.estimatedDeadline}</dd></div>
@@ -86,7 +86,7 @@ export function ProposalReview({ proposal, onRefresh }: Props) {
                 </label>
               )}
               {proposal.status === 'awaiting_payment' && <div className="payment-wait"><Clock3 size={17} /><span>O pagamento só será confirmado após validação server-to-server ou conferência da equipe. Voltar do checkout não confirma o pagamento.</span></div>}
-              {proposal.status === 'payment_confirmed' && <div className="payment-confirmed"><CheckCircle2 size={20} /><span><strong>Sinal confirmado.</strong>A equipe Cog Dev seguirá com as próximas etapas.</span></div>}
+              {proposal.status === 'payment_confirmed' && <div className="payment-confirmed"><CheckCircle2 size={20} /><span><strong>Valor inicial confirmado.</strong>A equipe Cog Dev seguirá com as próximas etapas.</span></div>}
               {error && <p className="proposal-error" role="alert">{error}</p>}
             </div>
             <footer>
@@ -94,7 +94,7 @@ export function ProposalReview({ proposal, onRefresh }: Props) {
               {canPay && (
                 <button className="primary-button" type="button" disabled={processing || (proposal.status === 'awaiting_client_approval' && !accepted)} onClick={() => void pay()}>
                   {processing ? <LoaderCircle className="spin" size={18} /> : <ExternalLink size={18} />}
-                  {proposal.status === 'awaiting_client_approval' ? 'Aprovar e pagar sinal' : 'Abrir checkout seguro'}
+                  {proposal.status === 'awaiting_client_approval' ? 'Aprovar e pagar valor inicial' : 'Abrir checkout seguro'}
                 </button>
               )}
             </footer>

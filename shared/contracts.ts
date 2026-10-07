@@ -199,7 +199,7 @@ export const createProposalSchema = z
   .strict()
   .superRefine((value, ctx) => {
     if (value.depositAmount > value.totalAmount) {
-      ctx.addIssue({ code: 'custom', path: ['depositAmount'], message: 'O sinal não pode superar o valor total.' });
+      ctx.addIssue({ code: 'custom', path: ['depositAmount'], message: 'O valor inicial não pode superar o valor total.' });
     }
     if (value.paymentMode === 'manual_payment_link' && !value.manualPaymentUrl) {
       ctx.addIssue({ code: 'custom', path: ['manualPaymentUrl'], message: 'Informe o link de pagamento C6.' });

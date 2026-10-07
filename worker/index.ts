@@ -610,8 +610,8 @@ const handleC6Webhook = async (request: Request, env: Env) => {
   `).bind(payment.proposal_id).first<ConversationRow>();
   if (context) {
     const body = event.status === 'confirmed'
-      ? 'Pagamento do sinal confirmado com segurança. A equipe Cog Dev dará continuidade ao projeto.'
-      : event.status === 'failed' ? 'O pagamento do sinal não foi confirmado. Revise o checkout ou fale com a equipe Cog Dev.' : 'O checkout desta proposta não está mais ativo.';
+      ? 'Pagamento do valor inicial confirmado com segurança. A equipe Cog Dev dará continuidade ao projeto.'
+      : event.status === 'failed' ? 'O pagamento do valor inicial não foi confirmado. Revise o checkout ou fale com a equipe Cog Dev.' : 'O checkout desta proposta não está mais ativo.';
     await callRoom(env, context, 'admin', null, '/system', { body, eventType: event.status === 'confirmed' ? 'payment_confirmed' : 'payment_failed' });
   }
   return json(request, env, { received: true });
@@ -978,7 +978,7 @@ const handleAdminPaymentStatus = async (request: Request, env: Env, admin: Admin
   ]);
   if (results.some((entry) => !entry.success)) throw new Error('Payment status could not be persisted');
   await callRoom(env, conversation, 'admin', admin.id, '/system', {
-    body: confirmed ? 'Pagamento do sinal confirmado com segurança. A equipe Cog Dev dará continuidade ao projeto.' : 'O pagamento do sinal não foi confirmado. Fale com a equipe Cog Dev para revisar o checkout.',
+    body: confirmed ? 'Pagamento do valor inicial confirmado com segurança. A equipe Cog Dev dará continuidade ao projeto.' : 'O pagamento do valor inicial não foi confirmado. Fale com a equipe Cog Dev para revisar o checkout.',
     eventType: confirmed ? 'payment_confirmed' : 'payment_failed',
   });
   return json(request, env, { status: confirmed ? 'payment_confirmed' : 'payment_failed' });

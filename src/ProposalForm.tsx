@@ -32,7 +32,7 @@ export function ProposalForm({ publicId, onClose, onSaved }: Props) {
   const fieldNames: Record<string, string> = {
     scopeSummary: 'Descrição do escopo',
     totalAmount: 'Valor final',
-    depositAmount: 'Valor do sinal',
+    depositAmount: 'Valor inicial',
     estimatedDeadline: 'Prazo estimado',
     paymentTerms: 'Condições de pagamento',
     maxInstallments: 'Máximo de parcelas',
@@ -47,8 +47,8 @@ export function ProposalForm({ publicId, onClose, onSaved }: Props) {
     const nextErrors: Record<string, string> = {};
     if (scope.trim().length < 10) nextErrors.scopeSummary = 'Descreva o escopo com pelo menos 10 caracteres.';
     if (totalAmount < 100) nextErrors.totalAmount = 'Informe um valor final de pelo menos R$ 1,00.';
-    if (depositAmount < 100) nextErrors.depositAmount = 'Informe um sinal de pelo menos R$ 1,00.';
-    if (depositAmount > totalAmount) nextErrors.depositAmount = 'O sinal não pode superar o valor total.';
+    if (depositAmount < 100) nextErrors.depositAmount = 'Informe um valor inicial de pelo menos R$ 1,00.';
+    if (depositAmount > totalAmount) nextErrors.depositAmount = 'O valor inicial não pode superar o valor total.';
     if (deadline.trim().length < 2) nextErrors.estimatedDeadline = 'Informe um prazo com pelo menos 2 caracteres, por exemplo: “2 dias”.';
     if (terms.trim().length < 5) nextErrors.paymentTerms = 'Informe as condições com pelo menos 5 caracteres.';
 
@@ -119,13 +119,13 @@ export function ProposalForm({ publicId, onClose, onSaved }: Props) {
         <div className="proposal-form-grid">
           <label className="span-2"><span>Descrição resumida do escopo</span><textarea rows={4} minLength={10} maxLength={4_000} required value={scope} onChange={(event) => setScope(event.target.value)} placeholder="Entregas, limites e premissas principais" /></label>
           <label><span>Valor final (R$)</span><input inputMode="decimal" required value={total} onChange={(event) => setTotal(event.target.value)} placeholder="15.000,00" /></label>
-          <label><span>Valor do sinal (R$)</span><input inputMode="decimal" required value={deposit} onChange={(event) => setDeposit(event.target.value)} placeholder="4.500,00" /></label>
+          <label><span>Valor inicial (R$)</span><input inputMode="decimal" required value={deposit} onChange={(event) => setDeposit(event.target.value)} placeholder="4.500,00" /></label>
           <label><span>Prazo estimado</span><input required maxLength={200} value={deadline} onChange={(event) => setDeadline(event.target.value)} placeholder="Ex.: 8 a 10 semanas" /></label>
           <label><span>Máximo de parcelas</span><select value={installments} onChange={(event) => setInstallments(Number(event.target.value))}>{Array.from({ length: 12 }, (_, index) => index + 1).map((number) => <option key={number} value={number}>{number}x</option>)}</select></label>
-          <label className="span-2"><span>Condições de pagamento</span><textarea rows={3} minLength={5} maxLength={1_500} required value={terms} onChange={(event) => setTerms(event.target.value)} placeholder="Ex.: 30% de sinal e saldo em 3 etapas" /></label>
+          <label className="span-2"><span>Condições de pagamento</span><textarea rows={3} minLength={5} maxLength={1_500} required value={terms} onChange={(event) => setTerms(event.target.value)} placeholder="Ex.: valor inicial e saldo em 3 etapas" /></label>
           <label><span>Validade da proposta</span><input type="datetime-local" required value={validUntil} onChange={(event) => setValidUntil(event.target.value)} /></label>
           <label><span>Modo de pagamento</span><select value={mode} onChange={(event) => setMode(event.target.value as ProposalInput['paymentMode'])}><option value="manual_payment_link">Link C6 manual</option><option value="c6_checkout_api">Checkout C6 API (requer contrato)</option></select></label>
-          {mode === 'manual_payment_link' && <label className="span-2"><span>Link de pagamento C6</span><input type="url" maxLength={2_048} required value={paymentUrl} onChange={(event) => setPaymentUrl(event.target.value)} placeholder="https://checkout2.c6pay.com.br/payment-v2/..." /><small>Gere o link no C6 com o mesmo valor do sinal. O servidor aceita somente HTTPS em checkout2.c6pay.com.br.</small></label>}
+          {mode === 'manual_payment_link' && <label className="span-2"><span>Link de pagamento C6</span><input type="url" maxLength={2_048} required value={paymentUrl} onChange={(event) => setPaymentUrl(event.target.value)} placeholder="https://checkout2.c6pay.com.br/payment-v2/..." /><small>Gere o link no C6 com o mesmo valor inicial. O servidor aceita somente HTTPS em checkout2.c6pay.com.br.</small></label>}
         </div>
         {error && <div className="proposal-form-error" role="alert"><p>{error}</p>{Object.entries(errors).map(([field, message]) => <p key={field}><strong>{fieldNames[field] || field}:</strong> {message}</p>)}</div>}
         <footer><p>Enviar cria uma nova versão e publica a proposta no chat. Versões aceitas não são alteradas.</p><div><button className="secondary-button" type="button" onClick={onClose}>Cancelar</button><button className="primary-button" type="submit" disabled={processing}>{processing ? <LoaderCircle className="spin" size={18} /> : <FileCheck2 size={18} />}Enviar proposta</button></div></footer>

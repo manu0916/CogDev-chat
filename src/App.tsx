@@ -194,6 +194,11 @@ function Composer({ question, answers, value, error, processing, onValue, onAnsw
             aria-describedby={error ? `${textId}-error` : undefined}
             aria-invalid={Boolean(error)}
             onChange={(event) => onValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+              event.preventDefault();
+              event.currentTarget.form?.requestSubmit();
+            }}
             autoFocus
           />
         ) : (

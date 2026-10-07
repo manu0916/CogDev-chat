@@ -489,16 +489,24 @@ kbd { min-width: 19px; padding: 2px 4px; border: 1px solid #d1d8e1; border-botto
 }
 
 @media (max-width: 800px) {
+  .app-shell { height: var(--visible-viewport-height, 100dvh); }
   .site-header { height: 66px; padding: 0 14px; }
   .brand-logo-wrap { width: 36px; height: 42px; }
   .brand strong { font-size: 16px; }
   .brand small { font-size: 9px; }
   .online-status { padding: 8px 10px; font-size: 11px; }
-  .workspace { height: calc(100dvh - 66px); padding: 0; display: block; }
+  .workspace { height: calc(var(--visible-viewport-height, 100dvh) - 66px); padding: 0; display: block; }
   .context-panel { display: none; }
   .chat-panel { height: 100%; border: 0; border-radius: 0; box-shadow: none; }
   .messages { padding: 21px 18px 34px; }
-  .choice-grid { max-height: 218px; }
+  .composer-area {
+    max-height: min(calc(var(--visible-viewport-height, 100dvh) * .48), 360px);
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .choice-grid { max-height: none; overflow: visible; }
   .bubble { max-width: 88%; }
   .consent-box { align-items: stretch; flex-direction: column; }
 
@@ -560,7 +568,7 @@ kbd { min-width: 19px; padding: 2px 4px; border: 1px solid #d1d8e1; border-botto
 }
 
 @media (max-width: 360px) {
-  .choice-grid { grid-template-columns: 1fr; max-height: 206px; }
+  .choice-grid { grid-template-columns: 1fr; }
   .online-status { font-size: 0; }
   .online-status > span { margin-right: 2px; }
   .chat-topbar small { display: none; }

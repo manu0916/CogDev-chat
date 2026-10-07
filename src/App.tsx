@@ -325,6 +325,26 @@ export default function App() {
   const idempotencyRef = useRef(crypto.randomUUID());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const updateViewportHeight = () => {
+      document.documentElement.style.setProperty(
+        '--visible-viewport-height',
+        `${viewport?.height ?? window.innerHeight}px`,
+      );
+    };
+    updateViewportHeight();
+    window.addEventListener('resize', updateViewportHeight);
+    viewport?.addEventListener('resize', updateViewportHeight);
+    viewport?.addEventListener('scroll', updateViewportHeight);
+    return () => {
+      window.removeEventListener('resize', updateViewportHeight);
+      viewport?.removeEventListener('resize', updateViewportHeight);
+      viewport?.removeEventListener('scroll', updateViewportHeight);
+      document.documentElement.style.removeProperty('--visible-viewport-height');
+    };
+  }, []);
+
   const flow = useMemo(() => buildFlow(answers), [answers]);
   const firstUnansweredIndex = flow.findIndex((question) => !hasAnswer(answers, question.key));
   const answeredCount = flow.filter((question) => hasAnswer(answers, question.key)).length;

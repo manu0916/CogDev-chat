@@ -203,8 +203,12 @@ const closingQuestions: Question[] = [
       { value: 'under-1k', label: 'Até R$ 1.000' },
       { value: '1-2k', label: 'R$ 1.001–2.000' },
       { value: '2-3k', label: 'R$ 2.001–3.000' },
-      { value: 'not-sure', label: 'Ainda não sei' },
+      { value: 'custom', label: 'Personalizar orçamento' },
     ],
+    validate: (value) => typeof value === 'string' && (
+      ['under-1k', '1-2k', '2-3k', 'under-5k', '5-15k', '15-30k', '30-60k', '60k-plus', 'not-sure'].includes(value)
+      || /^custom:[1-9]\d{0,7}$/.test(value)
+    ) ? null : 'Informe um valor personalizado válido em reais.',
   },
   {
     key: 'notes',
@@ -236,6 +240,23 @@ export const getQuestionPrompt = (question: Question, answers: Answers) =>
 export const choiceLabel = (question: Question, value: AnswerValue) => {
   if (typeof value === 'boolean') return value ? 'Autorizado' : 'Não autorizado';
   if (Array.isArray(value)) return value.join(', ');
+  if (question.key === 'budget' && typeof value === 'string') {
+    if (value.startsWith('custom:')) {
+      const amount = Number(value.slice('custom:'.length));
+      if (Number.isFinite(amount)) {
+        return `Personalizar orçamento: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}`;
+      }
+    }
+    const legacyBudgetLabels: Record<string, string> = {
+      'under-5k': 'Até R$ 5 mil',
+      '5-15k': 'R$ 5–15 mil',
+      '15-30k': 'R$ 15–30 mil',
+      '30-60k': 'R$ 30–60 mil',
+      '60k-plus': 'Acima de R$ 60 mil',
+      'not-sure': 'Ainda não sei',
+    };
+    if (legacyBudgetLabels[value]) return legacyBudgetLabels[value];
+  }
   return question.choices?.find((choice) => choice.value === value)?.label || value || 'Não se aplica';
 };
 

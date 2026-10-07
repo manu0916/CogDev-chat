@@ -117,18 +117,34 @@ type ComposerProps = {
 };
 
 function Composer({ question, answers, value, error, processing, onValue, onAnswer }: ComposerProps) {
+  const [customBudget, setCustomBudget] = useState(false);
+  useEffect(() => setCustomBudget(question.key === 'budget' && value.startsWith('custom:')), [question.key]);
+
   const submitText = (event: FormEvent) => {
     event.preventDefault();
-    onAnswer(value);
+    onAnswer(question.key === 'budget' && customBudget ? `custom:${Math.round(Number(value))}` : value);
   };
   const textId = `answer-${question.key}`;
   const isTextarea = question.input === 'textarea';
 
-  if (question.input === 'choices') {
+  if (question.input === 'choices' && !(question.key === 'budget' && customBudget)) {
     return (
       <div className="choice-grid" role="group" aria-label={question.label}>
         {question.choices?.map((choice) => (
-          <button key={choice.value} className="choice-button" type="button" disabled={processing} onClick={() => onAnswer(choice.value)}>
+          <button
+            key={choice.value}
+            className="choice-button"
+            type="button"
+            disabled={processing}
+            onClick={() => {
+              if (question.key === 'budget' && choice.value === 'custom') {
+                onValue('');
+                setCustomBudget(true);
+              } else {
+                onAnswer(choice.value);
+              }
+            }}
+          >
             <span>{choice.label}</span>
             <ArrowRight size={16} aria-hidden="true" />
           </button>
@@ -150,7 +166,11 @@ function Composer({ question, answers, value, error, processing, onValue, onAnsw
 
   return (
     <form className="answer-form" onSubmit={submitText}>
-      {question.choices && (
+      {question.input === 'choices' && customBudget ? (
+        <button className="quick-answers" type="button" disabled={processing} onClick={() => { setCustomBudget(false); onValue(''); }}>
+          Voltar às faixas de orçamento
+        </button>
+      ) : question.choices && (
         <div className="quick-answers" aria-label="Respostas rápidas">
           {question.choices.map((choice) => (
             <button key={choice.label} type="button" disabled={processing} onClick={() => onAnswer(choice.value)}>
@@ -159,7 +179,9 @@ function Composer({ question, answers, value, error, processing, onValue, onAnsw
           ))}
         </div>
       )}
-      <label htmlFor={textId} className="sr-only">{question.label}</label>
+      <label htmlFor={textId} className="sr-only">
+        {question.key === 'budget' && customBudget ? 'Valor personalizado em reais' : question.label}
+      </label>
       <div className={`input-shell ${error ? 'invalid' : ''}`}>
         {isTextarea ? (
           <textarea
@@ -179,11 +201,14 @@ function Composer({ question, answers, value, error, processing, onValue, onAnsw
             id={textId}
             value={value}
             maxLength={question.key === 'name' ? 80 : 160}
-            type={question.input === 'contact' && answers.contactMethod === 'email' ? 'email' : question.input === 'contact' ? 'tel' : 'text'}
-            inputMode={question.input === 'contact' && answers.contactMethod !== 'email' ? 'tel' : 'text'}
+            type={question.key === 'budget' && customBudget ? 'number' : question.input === 'contact' && answers.contactMethod === 'email' ? 'email' : question.input === 'contact' ? 'tel' : 'text'}
+            inputMode={question.key === 'budget' && customBudget ? 'numeric' : question.input === 'contact' && answers.contactMethod !== 'email' ? 'tel' : 'text'}
+            min={question.key === 'budget' && customBudget ? 1 : undefined}
+            max={question.key === 'budget' && customBudget ? 99_999_999 : undefined}
+            step={question.key === 'budget' && customBudget ? 1 : undefined}
             autoComplete={question.key === 'name' ? 'name' : answers.contactMethod === 'email' ? 'email' : 'tel'}
             disabled={processing}
-            placeholder={question.placeholder}
+            placeholder={question.key === 'budget' && customBudget ? 'Digite o valor em R$' : question.placeholder}
             aria-describedby={error ? `${textId}-error` : undefined}
             aria-invalid={Boolean(error)}
             onChange={(event) => onValue(event.target.value)}

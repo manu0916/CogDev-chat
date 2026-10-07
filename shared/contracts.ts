@@ -94,9 +94,12 @@ export const quotePayloadSchema = z
     existingProject: z.enum(['yes', 'no']),
     deadline: z.enum(['urgent', '1-2-months', '3-4-months', '5-plus-months', 'flexible']),
     // Keep legacy values valid for quotes submitted by sessions created before the budget ranges changed.
-    budget: z.enum([
-      'under-1k', '1-2k', '2-3k', 'not-sure',
-      'under-5k', '5-15k', '15-30k', '30-60k', '60k-plus',
+    budget: z.union([
+      z.enum([
+        'under-1k', '1-2k', '2-3k',
+        'under-5k', '5-15k', '15-30k', '30-60k', '60k-plus', 'not-sure',
+      ]),
+      z.string().regex(/^custom:[1-9]\d{0,7}$/, 'Informe um valor personalizado válido.'),
     ]),
     notes: z.string().trim().max(1_500).optional(),
     consent: z.literal(true),

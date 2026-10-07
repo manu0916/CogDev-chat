@@ -54,6 +54,30 @@ const briefingLabels: Record<string, string> = {
   deadline: 'Prazo', budget: 'Investimento', notes: 'Observações', consent: 'Consentimento',
 };
 
+const briefingValue = (key: string, value: unknown) => {
+  if (key === 'budget' && typeof value === 'string') {
+    if (value.startsWith('custom:')) {
+      const amount = Number(value.slice('custom:'.length));
+      if (Number.isFinite(amount)) {
+        return `Personalizado: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(amount)}`;
+      }
+    }
+    const budgetLabels: Record<string, string> = {
+      'under-1k': 'Até R$ 1.000',
+      '1-2k': 'R$ 1.001–2.000',
+      '2-3k': 'R$ 2.001–3.000',
+      'under-5k': 'Até R$ 5 mil',
+      '5-15k': 'R$ 5–15 mil',
+      '15-30k': 'R$ 15–30 mil',
+      '30-60k': 'R$ 30–60 mil',
+      '60k-plus': 'Acima de R$ 60 mil',
+      'not-sure': 'Ainda não sei',
+    };
+    if (budgetLabels[value]) return budgetLabels[value];
+  }
+  return String(value || 'Não informado');
+};
+
 const timeAgo = (value: string) => {
   const difference = Date.now() - Date.parse(value);
   if (difference < 60_000) return 'agora';
@@ -411,7 +435,7 @@ export default function AdminApp() {
               <dl><div><dt>Responsável</dt><dd>{detail.conversation.assigned_to || 'Não atribuído'}</dd></div><div><dt>Projeto</dt><dd>{projectTypeLabels[detail.conversation.project_type as keyof typeof projectTypeLabels] || detail.conversation.project_type || 'Em definição'}</dd></div></dl>
             </section>
             {(detail.conversation.email_normalized || detail.conversation.phone_normalized) && <section className="detail-section"><h3>Contato</h3><p>{detail.conversation.email_normalized || detail.conversation.phone_normalized}</p></section>}
-            <section className="detail-section"><h3>Briefing</h3><dl className="briefing-list">{Object.entries(detail.briefing).filter(([key]) => key !== 'consent').map(([key, value]) => <div key={key}><dt>{briefingLabels[key] || key}</dt><dd>{String(value || 'Não informado')}</dd></div>)}</dl></section>
+            <section className="detail-section"><h3>Briefing</h3><dl className="briefing-list">{Object.entries(detail.briefing).filter(([key]) => key !== 'consent').map(([key, value]) => <div key={key}><dt>{briefingLabels[key] || key}</dt><dd>{briefingValue(key, value)}</dd></div>)}</dl></section>
             {detail.conversation.minimum_amount && <section className="detail-section estimate-admin"><h3>Estimativa preliminar</h3><strong>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(detail.conversation.minimum_amount)} – {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(detail.conversation.maximum_amount ?? detail.conversation.minimum_amount)}</strong></section>}
             {proposal && <section className="detail-section admin-proposal-card"><h3>Proposta v{proposal.version}</h3><span className={`proposal-status ${proposal.status}`}>{proposal.status.replaceAll('_', ' ')}</span><p>{proposal.scopeSummary}</p><dl><div><dt>Total</dt><dd>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proposal.totalAmount / 100)}</dd></div><div><dt>Sinal</dt><dd>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proposal.depositAmount / 100)}</dd></div></dl>{proposal.paymentMode === 'manual_payment_link' && proposal.status !== 'payment_confirmed' && ['owner', 'admin'].includes(me?.role || '') && <form onSubmit={(event) => { event.preventDefault(); if (selectedId && replacementLink) void adminApi.replacePaymentLink(selectedId, replacementLink).then(() => { setReplacementLink(''); setToast('Link C6 atualizado'); }); }}><label><span>Substituir link C6</span><input type="url" value={replacementLink} onChange={(event) => setReplacementLink(event.target.value)} placeholder="https://..." /></label><button type="submit" disabled={!replacementLink}>Atualizar link</button></form>}{proposal.paymentMode === 'manual_payment_link' && ['awaiting_payment', 'payment_failed', 'approved'].includes(proposal.status) && ['owner', 'admin'].includes(me?.role || '') && <div className="manual-payment-actions"><button type="button" onClick={() => selectedId && void adminApi.setPaymentStatus(selectedId, 'confirmed').then(() => setProposal((current) => current ? { ...current, status: 'payment_confirmed' } : current))}>Confirmar após conferência</button><button type="button" onClick={() => selectedId && void adminApi.setPaymentStatus(selectedId, 'failed').then(() => setProposal((current) => current ? { ...current, status: 'payment_failed' } : current))}>Marcar falha</button></div>}</section>}
             <section className="detail-section internal-notes"><h3>Anotações internas <LockKeyhole size={14} /></h3><p className="private-hint">Visíveis apenas para a equipe autorizada.</p>{notes.map((note) => <article key={note.id}><p>{note.body}</p><span>{note.author} · {fullTime(note.createdAt)}</span></article>)}{canReply && <form onSubmit={(event) => void saveNote(event)}><label className="sr-only" htmlFor="internal-note">Nova anotação interna</label><textarea id="internal-note" rows={3} maxLength={2_000} value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} placeholder="Adicionar observação privada" /><button type="submit" disabled={!noteDraft.trim()}>Salvar anotação</button></form>}</section>

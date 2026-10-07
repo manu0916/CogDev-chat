@@ -359,6 +359,8 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .proposal-form-grid small { color: #7d8998; font-size: 8px; }
 .proposal-form-grid .span-2 { grid-column: span 2; }
 .proposal-form-error { margin: 0 21px 10px; padding: 9px 11px; border-radius: 8px; color: var(--danger); background: #fff1f2; font-size: 10px; }
+.proposal-form-error p { margin: 0; line-height: 1.5; }
+.proposal-form-error p + p { margin-top: 4px; }
 .proposal-form > footer { padding: 14px 21px; border-top: 1px solid var(--soft-line); display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .proposal-form > footer p { max-width: 370px; margin: 0; color: #778496; font-size: 9px; line-height: 1.45; }
 .proposal-form > footer > div { display: flex; gap: 7px; }

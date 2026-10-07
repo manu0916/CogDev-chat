@@ -48,8 +48,15 @@ export type ProposalInput = {
   manualPaymentUrl?: string;
 };
 
-class AdminApiError extends Error {
-  constructor(message: string, public code: string, public status: number) { super(message); }
+export type AdminApiFieldError = { field: string; message: string };
+
+export class AdminApiError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public status: number,
+    public details?: AdminApiFieldError[],
+  ) { super(message); }
 }
 
 const call = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
@@ -58,8 +65,8 @@ const call = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
     ...options,
     headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers },
   });
-  const body = await response.json().catch(() => null) as { error?: { message?: string; code?: string } } | null;
-  if (!response.ok) throw new AdminApiError(body?.error?.message || 'Não foi possível concluir esta ação.', body?.error?.code || 'REQUEST_FAILED', response.status);
+  const body = await response.json().catch(() => null) as { error?: { message?: string; code?: string; details?: AdminApiFieldError[] } } | null;
+  if (!response.ok) throw new AdminApiError(body?.error?.message || 'Não foi possível concluir esta ação.', body?.error?.code || 'REQUEST_FAILED', response.status, body?.error?.details);
   return body as T;
 };
 

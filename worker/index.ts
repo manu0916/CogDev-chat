@@ -31,6 +31,7 @@ import {
   requestOriginIsAllowed,
   responseHeaders,
   sessionCookies,
+  csrfCookies,
   clearSessionCookies,
   sha256,
 } from './security';
@@ -203,6 +204,12 @@ const handleGetSession = async (request: Request, env: Env) => {
     if (stored && requestRow) quoteResult = storedQuoteResponse(env, stored, requestRow.name);
   }
 
+  // Reissue a verified legacy token at / when an existing session is restored.
+  const csrfToken = parseCookies(request).get('cogdev_csrf');
+  const cookies = csrfToken && await sha256(csrfToken) === session.csrf_token_hash
+    ? csrfCookies(env, csrfToken, new Date(session.expires_at))
+    : [];
+
   return json(request, env, {
     status: session.status,
     currentStep: session.current_step,
@@ -214,7 +221,7 @@ const handleGetSession = async (request: Request, env: Env) => {
       lastMessageAt: conversation.last_message_at,
     },
     quoteResult,
-  });
+  }, 200, undefined, cookies);
 };
 
 const handleSaveAnswer = async (request: Request, env: Env) => {

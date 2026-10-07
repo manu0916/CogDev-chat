@@ -126,12 +126,23 @@ export const parseCookies = (request: Request) => {
   return values;
 };
 
+export const csrfCookies = (env: Env, csrfToken: string, expiresAt: Date) => {
+  const secure = env.ENVIRONMENT === 'production' ? '; Secure' : '';
+  const maxAge = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1_000));
+  return [
+    // The chat at / must read this token to populate X-CSRF-Token.
+    `cogdev_csrf=${encodeURIComponent(csrfToken)}${secure}; SameSite=Strict; Path=/; Max-Age=${maxAge}`,
+    // Remove the old API-only cookie to avoid two values with the same name.
+    `cogdev_csrf=${secure}; SameSite=Strict; Path=/api; Max-Age=0`,
+  ];
+};
+
 export const sessionCookies = (env: Env, accessToken: string, csrfToken: string, expiresAt: Date) => {
   const secure = env.ENVIRONMENT === 'production' ? '; Secure' : '';
   const maxAge = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1_000));
   return [
     `cogdev_session=${encodeURIComponent(accessToken)}; HttpOnly${secure}; SameSite=Strict; Path=/api; Max-Age=${maxAge}`,
-    `cogdev_csrf=${encodeURIComponent(csrfToken)}${secure}; SameSite=Strict; Path=/api; Max-Age=${maxAge}`,
+    ...csrfCookies(env, csrfToken, expiresAt),
   ];
 };
 
@@ -139,7 +150,7 @@ export const clearSessionCookies = (env: Env) => {
   const secure = env.ENVIRONMENT === 'production' ? '; Secure' : '';
   return [
     `cogdev_session=; HttpOnly${secure}; SameSite=Strict; Path=/api; Max-Age=0`,
-    `cogdev_csrf=${secure}; SameSite=Strict; Path=/api; Max-Age=0`,
+    ...csrfCookies(env, '', new Date(0)),
   ];
 };
 
